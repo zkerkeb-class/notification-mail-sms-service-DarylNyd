@@ -2,6 +2,8 @@
 
 This microservice handles email and SMS notifications for the NydArt Advisor application.
 
+by Ndenga Nemeck Yvan Daryl
+
 ## Features
 
 - **Email Notifications**: Password reset emails via Nodemailer (recommended) or SendGrid
