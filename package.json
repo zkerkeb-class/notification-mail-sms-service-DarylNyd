@@ -17,6 +17,7 @@
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
     "dotenv": "^17.0.1",
-    "nodemailer": "^7.0.4"
+    "nodemailer": "^7.0.4",
+    "prom-client": "^15.1.3"
   }
 }
