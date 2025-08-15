@@ -264,6 +264,127 @@ const emailConfig = {
       Welcome to the NydArt Advisor community! 🎨
       If you have any questions, please contact our support team.
     `
+  },
+  securityAlertTemplate: {
+    subject: '🔒 Security Alert - New Login Detected - NydArt Advisor',
+    html: (username, loginTime, deviceInfo, location, loginLink, supportLink) => `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Security Alert - New Login</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .alert-box { background: #fff3cd; border: 2px solid #ffc107; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .info-box { background: #e8f4fd; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin: 15px 0; }
+          .button { display: inline-block; background: #ff6b6b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 5px; font-weight: bold; }
+          .button-secondary { background: #6c757d; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+          .details { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+          .detail-row { display: flex; justify-content: space-between; margin: 8px 0; }
+          .detail-label { font-weight: bold; color: #495057; }
+          .detail-value { color: #6c757d; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔒 Security Alert</h1>
+            <p>New Login Detected</p>
+          </div>
+          <div class="content">
+            <h2>Hello ${username}!</h2>
+            
+            <div class="alert-box">
+              <h3>⚠️ New Login Detected</h3>
+              <p>We detected a new login to your NydArt Advisor account. If this was you, you can safely ignore this email.</p>
+            </div>
+            
+            <div class="details">
+              <h4>Login Details:</h4>
+              <div class="detail-row">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">${loginTime}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Device:</span>
+                <span class="detail-value">${deviceInfo}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Location:</span>
+                <span class="detail-value">${location}</span>
+              </div>
+            </div>
+            
+            <div class="info-box">
+              <h4>🔍 What to do next:</h4>
+              <ul>
+                <li><strong>If this was you:</strong> No action needed - your account is secure</li>
+                <li><strong>If this wasn't you:</strong> Change your password immediately and contact support</li>
+                <li><strong>Enable 2FA:</strong> Consider enabling two-factor authentication for extra security</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center;">
+              <a href="${loginLink}" class="button">Review Account Activity</a>
+              <a href="${supportLink}" class="button button-secondary">Contact Support</a>
+            </div>
+            
+            <div class="info-box">
+              <h4>🛡️ Security Tips:</h4>
+              <ul>
+                <li>Use a strong, unique password</li>
+                <li>Enable two-factor authentication</li>
+                <li>Never share your login credentials</li>
+                <li>Log out from shared devices</li>
+                <li>Regularly review your account activity</li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer">
+            <p>This is an automated security alert from NydArt Advisor.</p>
+            <p>If you have any concerns, please contact our support team immediately.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: (username, loginTime, deviceInfo, location, loginLink, supportLink) => `
+      🔒 Security Alert - New Login Detected - NydArt Advisor
+      
+      Hello ${username}!
+      
+      ⚠️ New Login Detected
+      
+      We detected a new login to your NydArt Advisor account. If this was you, you can safely ignore this email.
+      
+      Login Details:
+      - Time: ${loginTime}
+      - Device: ${deviceInfo}
+      - Location: ${location}
+      
+      🔍 What to do next:
+      - If this was you: No action needed - your account is secure
+      - If this wasn't you: Change your password immediately and contact support
+      - Enable 2FA: Consider enabling two-factor authentication for extra security
+      
+      Review Account Activity: ${loginLink}
+      Contact Support: ${supportLink}
+      
+      🛡️ Security Tips:
+      - Use a strong, unique password
+      - Enable two-factor authentication
+      - Never share your login credentials
+      - Log out from shared devices
+      - Regularly review your account activity
+      
+      This is an automated security alert from NydArt Advisor.
+      If you have any concerns, please contact our support team immediately.
+    `
   }
 };
 

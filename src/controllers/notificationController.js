@@ -1,5 +1,6 @@
 const emailService = require('../services/emailService');
 const nodemailerService = require('../services/nodemailerService');
+const { emailConfig } = require('../config/nodemailer'); 
 
 // Password reset email notification controller
 const sendPasswordResetEmail = async (req, res) => {
@@ -138,11 +139,10 @@ const sendWelcomeEmail = async (req, res) => {
     // Try Nodemailer first
     if (nodemailerService.isInitialized) {
       const mailOptions = {
-        from: `"${nodemailerService.emailConfig.fromName}" <${nodemailerService.emailConfig.from}>`,
-        to: email,
-        subject: nodemailerService.emailConfig.welcomeTemplate.subject,
-        html: nodemailerService.emailConfig.welcomeTemplate.html(username, finalLoginLink),
-        text: nodemailerService.emailConfig.welcomeTemplate.text(username, finalLoginLink)
+        from: `"${emailConfig.fromName}" <${emailConfig.from}>`,
+        subject: emailConfig.welcomeTemplate.subject,
+        html: emailConfig.welcomeTemplate.html(username, finalLoginLink),
+        text: emailConfig.welcomeTemplate.text(username, finalLoginLink)
       };
 
       const info = await nodemailerService.transporter.sendMail(mailOptions);
@@ -159,11 +159,10 @@ const sendWelcomeEmail = async (req, res) => {
     // Fallback to SendGrid if configured
     if (emailService.isInitialized && process.env.SENDGRID_API_KEY) {
       const msg = {
-        to: email,
-        from: nodemailerService.emailConfig.from,
-        subject: nodemailerService.emailConfig.welcomeTemplate.subject,
-        html: nodemailerService.emailConfig.welcomeTemplate.html(username, finalLoginLink),
-        text: nodemailerService.emailConfig.welcomeTemplate.text(username, finalLoginLink)
+        from: emailConfig.from,
+        subject: emailConfig.welcomeTemplate.subject,
+        html: emailConfig.welcomeTemplate.html(username, finalLoginLink),
+        text: emailConfig.welcomeTemplate.text(username, finalLoginLink)
       };
 
       const response = await emailService.sgMail.send(msg);
@@ -179,7 +178,7 @@ const sendWelcomeEmail = async (req, res) => {
 
     // Mock response if no email service configured
     console.log(`📧 [MOCK] Welcome email would be sent to: ${email}`);
-    console.log(`�� [MOCK] Subject: ${nodemailerService.emailConfig.welcomeTemplate.subject}`);
+    console.log(`📧 [MOCK] Subject: ${emailConfig.welcomeTemplate.subject}`);
     console.log(`📧 [MOCK] Username: ${username}`);
     console.log(`📧 [MOCK] Login Link: ${finalLoginLink}`);
 
@@ -189,7 +188,7 @@ const sendWelcomeEmail = async (req, res) => {
       method: 'mock',
       details: {
         to: email,
-        subject: nodemailerService.emailConfig.welcomeTemplate.subject,
+        subject: emailConfig.welcomeTemplate.subject,
         username: username,
         loginLink: finalLoginLink
       }
@@ -205,10 +204,134 @@ const sendWelcomeEmail = async (req, res) => {
   }
 };
 
+// Send security alert for suspicious login attempts
+const sendSecurityAlert = async (req, res) => {
+  try {
+    const { email, username, loginTime, deviceInfo, location, loginLink, supportLink } = req.body;
+
+    // Validate required fields
+    if (!email || !username || !loginTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, username, and loginTime are required'
+      });
+    }
+
+    // Use default values if not provided
+    const finalLoginLink = loginLink || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`;
+    const finalSupportLink = supportLink || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/support`;
+    const finalDeviceInfo = deviceInfo || 'Unknown device';
+    const finalLocation = location || 'Unknown location';
+
+    console.log(`🔒 Sending security alert to: ${email}`);
+
+    // Try Nodemailer first
+    if (nodemailerService.isInitialized) {
+      const mailOptions = {
+        from: `"${nodemailerService.emailConfig.fromName}" <${nodemailerService.emailConfig.from}>`,
+        to: email,
+        subject: nodemailerService.emailConfig.securityAlertTemplate.subject,
+        html: nodemailerService.emailConfig.securityAlertTemplate.html(
+          username, 
+          loginTime, 
+          finalDeviceInfo, 
+          finalLocation, 
+          finalLoginLink, 
+          finalSupportLink
+        ),
+        text: nodemailerService.emailConfig.securityAlertTemplate.text(
+          username, 
+          loginTime, 
+          finalDeviceInfo, 
+          finalLocation, 
+          finalLoginLink, 
+          finalSupportLink
+        )
+      };
+
+      const info = await nodemailerService.transporter.sendMail(mailOptions);
+      console.log(`✅ Security alert sent successfully via Nodemailer: ${info.messageId}`);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Security alert sent successfully',
+        messageId: info.messageId,
+        method: 'nodemailer'
+      });
+    }
+
+    // Fallback to SendGrid if configured
+    if (emailService.isInitialized && process.env.SENDGRID_API_KEY) {
+      const msg = {
+        to: email,
+        from: nodemailerService.emailConfig.from,
+        subject: nodemailerService.emailConfig.securityAlertTemplate.subject,
+        html: nodemailerService.emailConfig.securityAlertTemplate.html(
+          username, 
+          loginTime, 
+          finalDeviceInfo, 
+          finalLocation, 
+          finalLoginLink, 
+          finalSupportLink
+        ),
+        text: nodemailerService.emailConfig.securityAlertTemplate.text(
+          username, 
+          loginTime, 
+          finalDeviceInfo, 
+          finalLocation, 
+          finalLoginLink, 
+          finalSupportLink
+        )
+      };
+
+      const response = await emailService.sgMail.send(msg);
+      console.log(`✅ Security alert sent successfully via SendGrid: ${response[0].headers['x-message-id']}`);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Security alert sent successfully',
+        messageId: response[0].headers['x-message-id'],
+        method: 'sendgrid'
+      });
+    }
+
+    // Mock response if no email service configured
+    console.log(`🔒 [MOCK] Security alert would be sent to: ${email}`);
+    console.log(`🔒 [MOCK] Subject: ${nodemailerService.emailConfig.securityAlertTemplate.subject}`);
+    console.log(`🔒 [MOCK] Username: ${username}`);
+    console.log(`🔒 [MOCK] Login Time: ${loginTime}`);
+    console.log(`🔒 [MOCK] Device: ${finalDeviceInfo}`);
+    console.log(`🔒 [MOCK] Location: ${finalLocation}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Security alert sent successfully (mock)',
+      method: 'mock',
+      details: {
+        to: email,
+        subject: nodemailerService.emailConfig.securityAlertTemplate.subject,
+        username: username,
+        loginTime: loginTime,
+        deviceInfo: finalDeviceInfo,
+        location: finalLocation
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error sending security alert:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to send security alert',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
   healthCheck,
   testEmailService,
   sendTestEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendSecurityAlert
 }; 
